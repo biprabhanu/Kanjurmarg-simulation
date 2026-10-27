@@ -1,0 +1,21 @@
+category,item,measure,value,unit,evidence_status,source
+Entrance flow,Naval Colony,Entering,10.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Entrance flow,Naval Colony,Leaving,42.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Entrance flow,Naval Colony,Total activity,52.0,pax/min,Calculated from observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Entrance flow,Huma,Entering,27.2,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Entrance flow,Huma,Leaving,50.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Entrance flow,Huma,Total activity,77.2,pax/min,Calculated from observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Entrance flow,Gandhi Nagar,Entering,33.33,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Entrance flow,Gandhi Nagar,Leaving,6.66,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Entrance flow,Gandhi Nagar,Total activity,39.99,pax/min,Calculated from observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Entrance flow,Total (3 west entrances),Total activity,169.19,pax/min,Calculated from observed,IE 301 Operational project report (team field observations)
+Facility flow,FOB 1,Flow,0.0,pax/min,Observed closed,"IE 301 Operational project report (team field observations), Sec. 2.1"
+Facility flow,FOB 2,Flow,70.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.3"
+Facility flow,FOB 3,Flow,33.3,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.3"
+Facility flow,FOB 2 + FOB 3,Combined flow,103.3,pax/min,Calculated from observed,"IE 301 Operational project report (team field observations), Sec. 4.4"
+Facility flow,Direct PF1,Residual flow,65.89,pax/min,"INFERRED residual (169.19 - 103.3), not measured",Calculation
+Geometry,FOB 2,Width,5.36,m,Recorded on field sketch; clear usable width needs field verification,"IE 301 Operational project report (team field observations), Sec. 4.6"
+Geometry,FOB 3,Width,6.0,m,PROVISIONAL ASSUMPTION - not measured,Project brief
+Capacity parameter,All FOBs,Flow intensity I,60.0,pax/m/min,Reference value (literature/project framework),"IE 301 Operational project report (team field observations), Sec. 4.6"
+Capacity,FOB 2,C per minute,321.6,pax/min,Calculated,"C = W x I x T, T = 1 min"
+Capacity,FOB 3,C per minute,360.0,pax/min,Calculated (uses assumed width),"C = W x I x T, T = 1 min"

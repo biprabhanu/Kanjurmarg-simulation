@@ -1,0 +1,17 @@
+id,assumption,value,rationale,evidence_status,implication
+A1,Route choice probabilities,"PF1 38.944% / FOB2 41.374% / FOB3 19.682% (exact fractions 65.89, 70.00, 33.30 over 169.19)",Aggregate calibration: reproduces observed combined FOB flows in expectation,Assumption derived from observations (calibration),Expected FOB flows match the observations by construction; agreement is NOT independent validation
+A2,Direct PF1 flow,65.89 pax/min,Residual of total entrance activity (169.19) minus combined FOB flow (103.3),"Inferred, not measured","If counts were not synchronous over a common boundary, the true PF1 share could differ substantially"
+A3,Same route split at all entrances and both directions,Identical probabilities for all 6 streams,No entrance-specific route-choice data exist,Assumption,Entrance-level FOB loading (e.g. Naval Colony favouring FOB 2) cannot be represented
+A4,Arrival process,"Six independent Poisson processes (exponential inter-arrival times, mean 60/lambda s)",Standard first approximation for many independent pedestrians,Modelling assumption,"Train-release platoons are not represented, so true one-minute peaks are likely higher than simulated"
+A5,Constant arrival rates over 60 min,Observed rates x scenario multiplier,Only one peak-period rate per stream available,Assumption,Within-hour peaks and troughs are not represented
+A6,Independent random route choice per passenger,"Inverse-CDF draw on uniform(0,1)",No behavioural route-choice model calibrated,Assumption,No density-dependent or familiarity-based switching between FOBs
+A7,Demand scenarios,"x1.00, x1.10, x1.20 applied to every stream",Hypothetical metro-integration uplift,"Hypothetical scenario, not a forecast","Results describe sensitivity to uniform growth, not predicted post-metro ridership"
+A8,FOB 2 width,5.36 m,Recorded on field sketch,Recorded; clear usable width unverified,Capacity 321.6 pax/min; a narrower clear width raises utilization proportionally
+A9,FOB 3 width,6.0 m,Provisional value specified in the brief,UNVERIFIED assumption,Capacity 360 pax/min; FOB 3 utilization scales with 1/W
+A10,Flow intensity I,60 pax/m/min,Project capacity framework (C = WIT),Reference value,"Utilization is a reference-capacity ratio, not a level-of-service or safety assessment"
+A11,Walking speed,"1.30 m/s, constant",Typical unimpeded walking speed,Assumption,Only shifts when a crossing is counted (delay 14-60 s); does not change counts materially
+A12,Crossing point,FOB deck mid-point between PF1 and PF2,Each passenger counted once when reaching it,Modelling convention,Passengers still on the approach at t = 60 min are not counted
+A13,Initial state / warm-up,"Model starts empty, no warm-up",Required by brief,Assumption,"Minute 1 has fewer crossings (start-up transient), lowering 60-min mean flow by about 1%"
+A14,Replications and seeds,"30 replications, seeds 1001-1030, common random numbers across scenarios",Gives narrow 95% CIs; CRN sharpens scenario comparisons,Experimental design choice,Seeds recorded for reproducibility
+A15,Layout,"Simplified conceptual layout, not to scale",Hand sketches supplied by the team,Conceptual,"Distances affect only crossing timing, not route shares"
+A16,Scope,"Only Naval Colony, Huma, Gandhi Nagar; east side, ticketing, buses, autos excluded",Brief scope,Scope decision,East-side users of FOBs are not represented in the demand
