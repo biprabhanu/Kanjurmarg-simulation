@@ -1,21 +1,28 @@
 category,item,measure,value,unit,evidence_status,source
-Entrance flow,Naval Colony,Entering,10.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
-Entrance flow,Naval Colony,Leaving,42.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
-Entrance flow,Naval Colony,Total activity,52.0,pax/min,Calculated from observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
-Entrance flow,Huma,Entering,27.2,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
-Entrance flow,Huma,Leaving,50.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
-Entrance flow,Huma,Total activity,77.2,pax/min,Calculated from observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
-Entrance flow,Gandhi Nagar,Entering,33.33,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
-Entrance flow,Gandhi Nagar,Leaving,6.66,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
-Entrance flow,Gandhi Nagar,Total activity,39.99,pax/min,Calculated from observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
-Entrance flow,Total (3 west entrances),Total activity,169.19,pax/min,Calculated from observed,IE 301 Operational project report (team field observations)
-Facility flow,FOB 1,Flow,0.0,pax/min,Observed closed,"IE 301 Operational project report (team field observations), Sec. 2.1"
-Facility flow,FOB 2,Flow,70.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.3"
-Facility flow,FOB 3,Flow,33.3,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.3"
-Facility flow,FOB 2 + FOB 3,Combined flow,103.3,pax/min,Calculated from observed,"IE 301 Operational project report (team field observations), Sec. 4.4"
-Facility flow,Direct PF1,Residual flow,65.89,pax/min,"INFERRED residual (169.19 - 103.3), not measured",Calculation
-Geometry,FOB 2,Width,5.36,m,Recorded on field sketch; clear usable width needs field verification,"IE 301 Operational project report (team field observations), Sec. 4.6"
-Geometry,FOB 3,Width,6.0,m,PROVISIONAL ASSUMPTION - not measured,Project brief
-Capacity parameter,All FOBs,Flow intensity I,60.0,pax/m/min,Reference value (literature/project framework),"IE 301 Operational project report (team field observations), Sec. 4.6"
+Gate flow,Naval Colony,Entering,10.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,Naval Colony,Leaving,42.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,Huma,Entering,27.2,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,Huma,Leaving,50.0,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,Gandhi Nagar,Entering,33.33,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,Gandhi Nagar,Leaving,6.66,pax/min,Observed,"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,Northeast,Entering,10.0,pax/min,ASSUMPTION: observed East-side count split 50/50 (no separate gate counts),"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,Northeast,Leaving,5.0,pax/min,ASSUMPTION: observed East-side count split 50/50 (no separate gate counts),"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,Southeast,Entering,10.0,pax/min,ASSUMPTION: observed East-side count split 50/50 (no separate gate counts),"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,Southeast,Leaving,5.0,pax/min,ASSUMPTION: observed East-side count split 50/50 (no separate gate counts),"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,East side (Northeast + Southeast),Entering / leaving,20.00 / 10.00,pax/min,Observed (combined),"IE 301 Operational project report (team field observations), Sec. 2.2"
+Gate flow,All five gates,Entering,90.53,pax/min,Calculated,IE 301 Operational project report (team field observations)
+Gate flow,All five gates,Leaving,108.66,pax/min,Calculated,IE 301 Operational project report (team field observations)
+Gate flow,All five gates,Total gate activity,199.19,pax/min,Calculated,IE 301 Operational project report (team field observations)
+Facility flow,FOB 1,Flow,0,pax/min,Closed,"IE 301 Operational project report (team field observations), Sec. 2.1"
+Facility flow,FOB 2,Flow,70.0,pax/min,Observed benchmark,"IE 301 Operational project report (team field observations), Sec. 2.3"
+Facility flow,FOB 3,Flow,33.3,pax/min,Observed benchmark,"IE 301 Operational project report (team field observations), Sec. 2.3"
+Facility flow,FOB 2 + FOB 3,Combined crossing flow,103.3,pax/min,Observed benchmark (not the same as gate activity),IE 301 Operational project report (team field observations)
+Geometry,FOB 2,Width,5.36,m,Recorded; clear usable width to be verified,"IE 301 Operational project report (team field observations), Sec. 4.6"
+Geometry,FOB 3,Width,6.0,m,PROVISIONAL ASSUMPTION - unverified,Final corrections brief
+Capacity parameter,All FOBs,Flow intensity I,60,pax/m/min,Reference value,"IE 301 Operational project report (team field observations), Sec. 4.6"
 Capacity,FOB 2,C per minute,321.6,pax/min,Calculated,"C = W x I x T, T = 1 min"
-Capacity,FOB 3,C per minute,360.0,pax/min,Calculated (uses assumed width),"C = W x I x T, T = 1 min"
+Capacity,FOB 3,C per minute,360.0,pax/min,Calculated (assumed width),"C = W x I x T, T = 1 min"
+Scenario input,Ghatkopar peak interchange flow,Reference flow,500.0,pax/min,ASSUMED benchmark (not independently verified),Final corrections brief
+Scenario input,Baseline,Additional entering demand (Huma / Gandhi Nagar),0 (0 / 0),pax/min,"Scenario input rate, not measured future demand",500 x 10% / 20%; split 80/20
+Scenario input,+50 pax/min,Additional entering demand (Huma / Gandhi Nagar),50 (40 / 10),pax/min,"Scenario input rate, not measured future demand",500 x 10% / 20%; split 80/20
+Scenario input,+100 pax/min,Additional entering demand (Huma / Gandhi Nagar),100 (80 / 20),pax/min,"Scenario input rate, not measured future demand",500 x 10% / 20%; split 80/20

@@ -1,0 +1,7 @@
+scenario,facility,mean_util_with_noise,ci95_with_noise,sd_between_reps_with_noise,mean_util_fixed_splits,ci95_fixed_splits,sd_between_reps_fixed_splits,variance_share_from_split_noise_pct
+Baseline,FOB 2,20.7267,0.5246,1.4048,21.1940,0.1071,0.2868,95.8327
+Baseline,FOB 3,9.2875,0.4010,1.0740,9.0238,0.0772,0.2067,96.2955
++50 pax/min,FOB 2,26.3110,0.5404,1.4471,26.6905,0.1288,0.3449,94.3207
++50 pax/min,FOB 3,11.5511,0.4096,1.0969,11.2556,0.0832,0.2228,95.8758
++100 pax/min,FOB 2,31.9265,0.6260,1.6765,32.2074,0.1594,0.4268,93.5204
++100 pax/min,FOB 3,13.7790,0.4734,1.2677,13.4438,0.0944,0.2529,96.0214

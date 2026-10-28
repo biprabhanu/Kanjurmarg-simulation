@@ -1,17 +1,20 @@
 id,assumption,value,rationale,evidence_status,implication
-A1,Route choice probabilities,"PF1 38.944% / FOB2 41.374% / FOB3 19.682% (exact fractions 65.89, 70.00, 33.30 over 169.19)",Aggregate calibration: reproduces observed combined FOB flows in expectation,Assumption derived from observations (calibration),Expected FOB flows match the observations by construction; agreement is NOT independent validation
-A2,Direct PF1 flow,65.89 pax/min,Residual of total entrance activity (169.19) minus combined FOB flow (103.3),"Inferred, not measured","If counts were not synchronous over a common boundary, the true PF1 share could differ substantially"
-A3,Same route split at all entrances and both directions,Identical probabilities for all 6 streams,No entrance-specific route-choice data exist,Assumption,Entrance-level FOB loading (e.g. Naval Colony favouring FOB 2) cannot be represented
-A4,Arrival process,"Six independent Poisson processes (exponential inter-arrival times, mean 60/lambda s)",Standard first approximation for many independent pedestrians,Modelling assumption,"Train-release platoons are not represented, so true one-minute peaks are likely higher than simulated"
-A5,Constant arrival rates over 60 min,Observed rates x scenario multiplier,Only one peak-period rate per stream available,Assumption,Within-hour peaks and troughs are not represented
-A6,Independent random route choice per passenger,"Inverse-CDF draw on uniform(0,1)",No behavioural route-choice model calibrated,Assumption,No density-dependent or familiarity-based switching between FOBs
-A7,Demand scenarios,"x1.00, x1.10, x1.20 applied to every stream",Hypothetical metro-integration uplift,"Hypothetical scenario, not a forecast","Results describe sensitivity to uniform growth, not predicted post-metro ridership"
-A8,FOB 2 width,5.36 m,Recorded on field sketch,Recorded; clear usable width unverified,Capacity 321.6 pax/min; a narrower clear width raises utilization proportionally
-A9,FOB 3 width,6.0 m,Provisional value specified in the brief,UNVERIFIED assumption,Capacity 360 pax/min; FOB 3 utilization scales with 1/W
-A10,Flow intensity I,60 pax/m/min,Project capacity framework (C = WIT),Reference value,"Utilization is a reference-capacity ratio, not a level-of-service or safety assessment"
-A11,Walking speed,"1.30 m/s, constant",Typical unimpeded walking speed,Assumption,Only shifts when a crossing is counted (delay 14-60 s); does not change counts materially
-A12,Crossing point,FOB deck mid-point between PF1 and PF2,Each passenger counted once when reaching it,Modelling convention,Passengers still on the approach at t = 60 min are not counted
-A13,Initial state / warm-up,"Model starts empty, no warm-up",Required by brief,Assumption,"Minute 1 has fewer crossings (start-up transient), lowering 60-min mean flow by about 1%"
-A14,Replications and seeds,"30 replications, seeds 1001-1030, common random numbers across scenarios",Gives narrow 95% CIs; CRN sharpens scenario comparisons,Experimental design choice,Seeds recorded for reproducibility
-A15,Layout,"Simplified conceptual layout, not to scale",Hand sketches supplied by the team,Conceptual,"Distances affect only crossing timing, not route shares"
-A16,Scope,"Only Naval Colony, Huma, Gandhi Nagar; east side, ticketing, buses, autos excluded",Brief scope,Scope decision,East-side users of FOBs are not represented in the demand
+A1,Five access gates,"Naval Colony, Huma, Gandhi Nagar (west); Northeast, Southeast (east, skywalk exits)",Final station layout,Layout decision,East-side demand now included
+A2,East-side gate rates,NE and SE each 10.00 entering / 5.00 leaving pax/min,Observed East-side 20 / 10 split equally; no separate counts,ASSUMPTION (50/50 split),Conserves the observed aggregate; true NE/SE balance unknown
+A3,Baseline gate route-choice probabilities,"NC 60/25/15/0, Huma 55/30/15/0, GN 60/35/5/0, NE 0/95/0/5, SE 0/30/70/0 (PF1/FOB2/FOB3/skywalk)",Revised team estimates,"Modelling assumption, not measured","Expected baseline FOB flows (68.9, 32.6 pax/min) are close to the observed 70.0 and 33.3, but this is not independent validation"
+A3b,Route shares of the additional demand,"Huma 50/35/15, Gandhi Nagar 40/40/20 (PF1/FOB2/FOB3)",Revised team estimates,"Modelling assumption, not measured",Added FOB load +18/+8 pax/min (+50) and +36/+16 pax/min (+100)
+A4,Southeast split,"70% FOB 3, 30% FOB 2",Team estimate,Explicit ASSUMPTION,Drives most of FOB 3's east-side load
+A5,Leaving passengers,Use the same route percentages as entering passengers at that gate,No separate leaving data,Assumption,Directional asymmetry in route choice is not represented
+A6,Route-split noise,"Dirichlet draw per gate per replication, concentration 99 (about +/-3 pp for a 10% share)",Splits are estimates; noise represents their uncertainty,Modelling choice,Widens replication-to-replication spread; zero shares stay zero
+A7,Skywalk,Connector between FOB 2 and FOB 3 on the east side; 5% of Northeast users walk it to FOB 3,Final layout,Layout decision,Skywalk users are counted on FOB 3 only; skywalk is not an FOB
+A8,FOB 1,Closed; never offered as a route,Field observation,Observed,Zero flow by construction
+A9,Ghatkopar reference flow,500 pax/min,Supplied benchmark,"ASSUMED, not independently verified",Sets the size of the +50 and +100 scenarios
+A10,Additional demand,"+50 and +100 pax/min entering only; 80% Huma, 20% Gandhi Nagar; own route shares (A3b)",10% and 20% of the Ghatkopar reference,"Scenario input, not a forecast",Leaving rates and other gates unchanged
+A11,Arrival process,Independent Poisson processes (exponential inter-arrival times) for 10 baseline + 2 additional streams,Only mean rates available,Simplification,Train-release surges are not represented; true peak minutes are likely higher
+A12,Constant rates over 60 min,Peak-period observed rates,Single peak observation per stream,Simplification,No within-hour variation
+A13,FOB 2 width,5.36 m,Recorded on field sketch,Recorded; clear width unverified,C = 321.6 pax/min
+A14,FOB 3 width,6.0 m,Provisional value,UNVERIFIED assumption,C = 360 pax/min; utilization scales with 1/W
+A15,Flow intensity I,60 pax/m/min,Project capacity framework,Reference value,"Utilization is a reference-capacity ratio, not level of service or safety"
+A16,Walking speed / crossing point,1.30 m/s; counted at FOB deck mid-point,Typical walking speed,Assumption,Only shifts crossing timing; start-up transient lowers minute 1
+A17,Initial state,"Station starts empty, no warm-up",Brief,Assumption,60-min mean flows are about 1-3% below expected values
+A18,Replications and seeds,"30 per scenario, seeds 1001-1030, common random numbers",Experimental design,Design choice,Fully reproducible
