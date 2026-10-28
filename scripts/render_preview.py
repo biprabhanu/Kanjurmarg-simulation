@@ -1,10 +1,10 @@
 """
 Renders a static PNG preview of the AnyLogic model screen directly from the shapes stored in the
-.alp file (rectangles, polylines, ovals, text). Passenger dots are positioned from the simulation
-(seed 1001, baseline) at a chosen model time. Dynamic texts show values from that same run.
-This is a preview drawn by this script — NOT a screenshot of AnyLogic.
+.alp file (rectangles, rounded rectangles, polylines, ovals, text). Passenger dots are positioned
+from the simulation (seed 1001) at a chosen model time, and dynamic values (utilization, deck colours)
+come from that same run. This is a preview drawn by this script — NOT a screenshot of AnyLogic.
 
-    python3 scripts/render_preview.py [minute]
+    python3 scripts/render_preview.py [minute] [additional_demand]
 """
 import math
 import os
@@ -19,6 +19,8 @@ import fob_twin as tw  # noqa: E402
 
 ALP = os.path.join(ROOT, "anylogic", "Kanjurmarg_FOB_Simulation", "Kanjurmarg_FOB_Simulation.alp")
 SS = 2  # supersampling
+OX, OY, PXM = 40, 150, 8.0
+ROUTE_COL = {0: (217, 119, 6), 1: (0, 161, 155), 2: (37, 99, 235), 3: (124, 58, 237)}
 
 
 def col(v, default=None):
@@ -29,188 +31,201 @@ def col(v, default=None):
 
 
 def font(size, bold=False, mono=False):
-    name = "DejaVuSansMono" if mono else "DejaVuSans"
-    if bold:
-        name += "-Bold"
-    for d in ("/usr/share/fonts/truetype/dejavu/",):
-        p = os.path.join(d, name + ".ttf")
-        if os.path.exists(p):
-            return ImageFont.truetype(p, int(size * SS * 1.05))
-    return ImageFont.load_default()
+    name = ("DejaVuSansMono" if mono else "DejaVuSans") + ("-Bold" if bold else "")
+    return ImageFont.truetype(f"/usr/share/fonts/truetype/dejavu/{name}.ttf", int(size * SS * 1.05))
 
 
-def snapshot(minute, seed=1001, mult=1.0):
-    """Passenger positions (metres) at model time minute*60 s and dashboard values from the run."""
-    probs = tw.calibrated_probabilities()
+def heat(u):
+    t = max(0.0, min(1.0, u / 60.0))
+    low, mid, high = (205, 237, 236), (253, 214, 130), (239, 108, 96)
+    a, b = (low, mid) if t < 0.5 else (mid, high)
+    k = t / 0.5 if t < 0.5 else (t - 0.5) / 0.5
+    return tuple(int(round(a[i] + (b[i] - a[i]) * k)) for i in range(3)) + (255,)
+
+
+def snapshot(minute, seed=1001, additional=0.0):
+    """Passenger positions (metres) at model time minute*60 s, using the same random streams as the engine."""
     T = minute * 60.0
+    splits = tw.noisy_splits(tw.DEFAULT_SPLITS, 99.0, tw.JavaRandom(seed * 1000 + 500))
     pts = []
-    gen = [0, 0, 0]
-    for s in range(6):
+    for s in range(tw.NUM_STREAMS):
+        lam = tw.rate(s, additional)
+        if lam <= 0:
+            continue
         rng = tw.JavaRandom(seed * 1000 + s)
-        lam = tw.stream_rate(s) * mult
-        e, ent = s // 2, s % 2 == 0
+        g, ent = tw.gate_of(s), tw.is_entering(s)
         t = -math.log(1 - rng.next_double()) * 60 / lam
         while t < 3600:
-            r = tw.draw_route(rng, probs)
+            r = tw.draw_route(rng, splits[g])
             if t <= T:
-                gen[r] += 1
-                path = tw.waypoints(e, ent, r)
+                path = tw.waypoints(g, ent, r)
                 d = (T - t) * 1.30
                 for i in range(len(path) - 1):
                     seg = math.hypot(path[i + 1][0] - path[i][0], path[i + 1][1] - path[i][1])
                     if d <= seg:
                         f = d / seg
                         pts.append((path[i][0] + f * (path[i + 1][0] - path[i][0]),
-                                    path[i][1] + f * (path[i + 1][1] - path[i][1]), r))
+                                    path[i][1] + f * (path[i + 1][1] - path[i][1]), ent))
                         break
                     d -= seg
             t += -math.log(1 - rng.next_double()) * 60 / lam
-    return pts, gen
+    return pts
+
+
+def dashed(dr, a, b, color, width, dash, gap):
+    (ax, ay), (bx, by) = a, b
+    L = math.hypot(bx - ax, by - ay)
+    if L == 0:
+        return
+    pos = 0
+    while pos < L:
+        e = min(L, pos + dash)
+        dr.line([ax + (bx - ax) * pos / L, ay + (by - ay) * pos / L, ax + (bx - ax) * e / L, ay + (by - ay) * e / L],
+                fill=color, width=width)
+        pos += dash + gap
 
 
 def main():
-    minute = float(sys.argv[1]) if len(sys.argv) > 1 else 30.0
+    minute = int(float(sys.argv[1])) if len(sys.argv) > 1 else 30
+    additional = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0
     root = ET.parse(ALP).getroot()
     main_cls = [c for c in root.iter("ActiveObjectClass") if c.findtext("Name") == "Main"][0]
-    W, H = 1460, 1090
+    W, H = 1480, 1100
     img = Image.new("RGB", (W * SS, H * SS), (244, 246, 249))
     dr = ImageDraw.Draw(img, "RGBA")
 
-    pts, gen = snapshot(minute)
-    run = tw.run_replication(1001, 1.0, tw.calibrated_probabilities())
-    m = int(minute)
-    f2, f3 = run["fob2"][:m], run["fob3"][:m]
+    pts = snapshot(minute, additional=additional)
+    run = tw.run_replication(1001, additional)
+    f2, f3 = run["fob2"][:minute], run["fob3"][:minute]
     u2 = [x / 321.6 * 100 for x in f2]
     u3 = [x / 360 * 100 for x in f3]
+    label = {0: "Baseline", 50: "+50 pax/min", 100: "+100 pax/min"}[int(additional)]
     vals = {
-        "txtScenario": "Baseline   ·   demand × 1.00",
-        "txtClock": f"{m:02d}:00 / 60:00 min",
-        "kpi0": f"{sum(gen):,}", "kpi1": f"{sum(gen) - len(pts):,}", "kpi2": f"{len(pts):,}", "kpi3": f"{gen[0]:,}",
-        "txtCap2": "Capacity C = W × 60 = 321.6 pax/min", "txtCap3": "Capacity C = W × 60 = 360.0 pax/min",
-        "txtTot2": f"{sum(f2):,}", "txtTot3": f"{sum(f3):,}",
-        "txtLast2": f"{f2[-1]} pax", "txtLast3": f"{f3[-1]} pax",
-        "txtU2": f"{u2[-1]:.1f}%  ·  {sum(u2)/len(u2):.1f}%  ·  {max(u2):.1f}%",
-        "txtU3": f"{u3[-1]:.1f}%  ·  {sum(u3)/len(u3):.1f}%  ·  {max(u3):.1f}%",
-        "txtFob1": "crossings: 0",
-        "txtP0": "38.944% configured", "txtP1": "41.374% configured", "txtP2": "19.682% configured",
-        "txtR0": f"{gen[0]/sum(gen)*100:.2f}% realised", "txtR1": f"{gen[1]/sum(gen)*100:.2f}% realised",
-        "txtR2": f"{gen[2]/sum(gen)*100:.2f}% realised",
-        "txtBatchInfo": "30 replications × 3 scenarios, seeds 1001–1030, 60 min each. Results → anylogic_batch_results.csv",
+        "txtScenario": f"{label}   ·   +{additional:.0f} pax/min extra",
+        "txtClock": f"{minute:02d}:00 / 60:00",
+        "txtCap2": "W 5.36 m · C = 321.6 pax/min", "txtCap3": "W 6.0 m · C = 360.0 pax/min",
+        "txtNow2": f"{u2[-1]:.1f}%", "txtNow3": f"{u3[-1]:.1f}%",
+        "txtMean2": f"{sum(u2) / len(u2):.1f}%", "txtMean3": f"{sum(u3) / len(u3):.1f}%",
+        "txtPeak2": f"{max(u2):.1f}%", "txtPeak3": f"{max(u3):.1f}%",
+        "txtBatchInfo": "",
     }
-    batch_path = os.path.join(ROOT, "build", "alpcheck", "batch_summary.txt")
-    vals["txtBatch"] = open(batch_path).read() if os.path.exists(batch_path) else ""
-    widths = {"barU2": min(250, 250 * u2[-1] / 50), "barU3": min(250, 250 * u3[-1] / 50),
-              "barRoutePF1": 250 * 0.38944, "barRouteFOB2": 250 * 0.41374, "barRouteFOB3": 250 * 0.19682}
-    bm = {"cmpBar_b2": 21.68, "cmpBar_b3": 9.23, "cmpBar_p2": 23.83, "cmpBar_p3": 10.14, "cmpBar_q2": 26.03, "cmpBar_q3": 11.05}
+    bpath = os.path.join(ROOT, "build", "alpcheck", "batch_summary.txt")
+    vals["txtBatch"] = open(bpath).read().rstrip() if os.path.exists(bpath) else ""
+    bm = {}
+    for line in vals["txtBatch"].splitlines()[1:]:
+        parts = line.split()
+        key = {"Base": "b", "+50": "p", "+100": "q"}[parts[0]]
+        bm[f"cmpBar_{key}{parts[1]}"] = float(parts[2].rstrip("%"))
+        vals[f"cmpVal_{key}{parts[1]}"] = f"{float(parts[2].rstrip('%')):.1f}%"
+        continue
+        u = float(line.split("%")[0].split()[-1])
+        bm[f"cmpBar_{key}{'2' if ' 2 ' in line[:22] else '3'}"] = u
+    widths = {"barU2": min(300, 300 * u2[-1] / 50), "barU3": min(300, 300 * u3[-1] / 50)}
+    fills = {"fob2Deck": heat(u2[-1]), "fob3Deck": heat(u3[-1])}
 
     def S(v):
         return v * SS
 
-    level_pres = main_cls.find("Presentation/Level/Presentation")
-    for el in list(level_pres):
+    for el in list(main_cls.find("Presentation/Level/Presentation")):
         tag = el.tag
         name = el.findtext("Name") or ""
         x, y = float(el.findtext("X") or 0), float(el.findtext("Y") or 0)
-        if tag == "Rectangle":
+        if tag in ("Rectangle", "RoundedRectangle"):
             w, h = float(el.findtext("Width")), float(el.findtext("Height"))
             if name in widths:
                 w = widths[name]
             if name in bm:
-                h = 150 * bm[name] / 40
+                h = max(1, min(200, 200 * bm[name] / 50))
                 y = y + 1 - h
-            fill = col(el.findtext("FillColor"))
+            fill = fills.get(name, col(el.findtext("FillColor")))
             line = col(el.findtext("LineColor"))
             lw = float(el.findtext("LineWidth") or 1)
-            dashed = el.findtext("LineStyle") == "DASHED"
-            dr.rectangle([S(x), S(y), S(x + w), S(y + h)], fill=fill,
-                         outline=None if (line is None or dashed or lw == 0) else line, width=max(1, int(S(lw))))
-            if dashed and line:
-                for (ax, ay, bx, by) in ((x, y, x + w, y), (x, y + h, x + w, y + h), (x, y, x, y + h), (x + w, y, x + w, y + h)):
-                    L = math.hypot(bx - ax, by - ay)
-                    n = int(L // 8)
-                    for i in range(0, n, 2):
-                        dr.line([S(ax + (bx - ax) * i / n), S(ay + (by - ay) * i / n),
-                                 S(ax + (bx - ax) * (i + 1) / n), S(ay + (by - ay) * (i + 1) / n)], fill=line, width=int(S(lw)))
+            style = el.findtext("LineStyle")
+            box = [S(x), S(y), S(x + w), S(y + h)]
+            if tag == "RoundedRectangle":
+                rad = min(float(el.findtext("ArcRadius")), w / 2, h / 2)
+                dr.rounded_rectangle(box, radius=S(rad), fill=fill, outline=None if (line is None or lw == 0) else line,
+                                     width=max(1, int(S(lw))))
+            else:
+                dr.rectangle(box, fill=fill, outline=None if (line is None or lw == 0 or style == "DASHED") else line,
+                             width=max(1, int(S(lw))))
+                if style == "DASHED" and line:
+                    for a, b in (((x, y), (x + w, y)), ((x, y + h), (x + w, y + h)), ((x, y), (x, y + h)), ((x + w, y), (x + w, y + h))):
+                        dashed(dr, (S(a[0]), S(a[1])), (S(b[0]), S(b[1])), line, int(S(lw)), S(8), S(5))
         elif tag == "Polyline":
             pts_ = [(S(x + float(p.findtext("X"))), S(y + float(p.findtext("Y")))) for p in el.find("Points")]
             line = col(el.findtext("LineColor"))
             fill = col(el.findtext("FillColor"))
-            lw = float(el.findtext("LineWidth") or 1)
+            lw = max(1, int(S(float(el.findtext("LineWidth") or 1))))
+            style = el.findtext("LineStyle")
             if el.findtext("Closed") == "true":
                 dr.polygon(pts_, fill=fill, outline=line)
-            elif el.findtext("LineStyle") == "DOTTED":
-                (ax, ay), (bx, by) = pts_[0], pts_[-1]
-                n = 12
-                for i in range(0, n, 2):
-                    dr.line([ax + (bx - ax) * i / n, ay + (by - ay) * i / n, ax + (bx - ax) * (i + 1) / n,
-                             ay + (by - ay) * (i + 1) / n], fill=line, width=int(S(lw)))
+            elif style in ("DOTTED", "DASHED"):
+                d, g = (S(2), S(3)) if style == "DOTTED" else (S(8), S(6))
+                for i in range(len(pts_) - 1):
+                    dashed(dr, pts_[i], pts_[i + 1], line, lw, d, g)
             else:
-                dr.line(pts_, fill=line, width=max(1, int(S(lw))))
+                dr.line(pts_, fill=line, width=lw)
         elif tag == "Oval":
             r = float(el.findtext("RadiusX"))
+            lw = max(1, int(S(float(el.findtext("LineWidth") or 1))))
             dr.ellipse([S(x - r), S(y - r), S(x + r), S(y + r)], fill=col(el.findtext("FillColor")),
-                       outline=col(el.findtext("LineColor")))
+                       outline=col(el.findtext("LineColor")), width=lw)
         elif tag == "Text":
+            if name.startswith("cmpVal_") and name.replace("cmpVal_", "cmpBar_") in bm:
+                y = y - max(1, min(200, 200 * bm[name.replace("cmpVal_", "cmpBar_")] / 50))
             s = el.findtext("Text") or ""
             if el.findtext("TextCode"):
                 s = vals.get(name, s)
-            f = el.find("Font")
-            fnt = font(float(f.findtext("Size")), f.findtext("Style") == "1", f.findtext("Name") == "Monospaced")
+            fnt_el = el.find("Font")
+            fnt = font(float(fnt_el.findtext("Size")), fnt_el.findtext("Style") == "1", fnt_el.findtext("Name") == "Monospaced")
             align = el.findtext("Alignment")
             c = col(el.findtext("Color"))
-            for i, line_ in enumerate(s.split("\n")):
-                tw_ = dr.textlength(line_, font=fnt)
+            for i, ln in enumerate(s.split("\n")):
+                tw_ = dr.textlength(ln, font=fnt)
                 tx = S(x) - (tw_ if align == "RIGHT" else tw_ / 2 if align == "CENTER" else 0)
-                dr.text((tx, S(y) + i * fnt.size * 1.25), line_, font=fnt, fill=c, anchor="ls")
+                dr.text((tx, S(y) + i * fnt.size * 1.25), ln, font=fnt, fill=c, anchor="ls")
         elif tag == "Control":
             bp = el.find("BasicProperties")
             w, h = float(bp.get("Width")), float(bp.get("Height"))
             dr.rounded_rectangle([S(x), S(y), S(x + w), S(y + h)], radius=S(5), fill=(250, 250, 250), outline=(150, 158, 168), width=SS)
-            lab = el.findtext("ExtendedProperties/LabelText") or ""
-            fnt = font(12, True)
-            dr.text((S(x + w / 2), S(y + h / 2)), lab, font=fnt, fill=(31, 41, 51), anchor="mm")
-        elif tag == "TimePlot":
+            dr.text((S(x + w / 2), S(y + h / 2)), el.findtext("ExtendedProperties/LabelText") or "", font=font(12, True),
+                    fill=(31, 41, 51), anchor="mm")
+        elif tag in ("TimePlot", "Histogram"):
             w, h = float(el.findtext("Width")), float(el.findtext("Height"))
             ox, oy, cw, ch = x + 40, y + 10, w - 60, h - 60
             dr.rectangle([S(ox), S(oy), S(ox + cw), S(oy + ch)], fill=(255, 255, 255), outline=(220, 225, 232))
-            for g in range(0, 41, 10):
-                gy = oy + ch - ch * g / 40
-                dr.line([S(ox), S(gy), S(ox + cw), S(gy)], fill=(228, 231, 235), width=1)
-                dr.text((S(ox - 6), S(gy)), str(g), font=font(9), fill=(95, 107, 122), anchor="rm")
-            for series, c in ((u2, (0, 161, 155)), (u3, (37, 99, 235))):
-                pp = [(S(ox + cw * (i + 1) / 60), S(oy + ch - ch * v / 40)) for i, v in enumerate(series)]
-                if len(pp) > 1:
-                    dr.line(pp, fill=c, width=2 * SS)
-            for i, (lab, c) in enumerate((("FOB 2", (0, 161, 155)), ("FOB 3", (37, 99, 235)))):
-                lx = ox + 60 + i * 90
-                dr.line([S(lx), S(oy + ch + 30), S(lx + 18), S(oy + ch + 30)], fill=c, width=3 * SS)
-                dr.text((S(lx + 24), S(oy + ch + 30)), lab, font=font(10), fill=(95, 107, 122), anchor="lm")
-        elif tag == "Histogram":
-            w, h = float(el.findtext("Width")), float(el.findtext("Height"))
-            ox, oy, cw, ch = x + 40, y + 10, w - 60, h - 60
-            dr.rectangle([S(ox), S(oy), S(ox + cw), S(oy + ch)], fill=(255, 255, 255), outline=(220, 225, 232))
-            bins = 16
-            for series, c, off in ((u2, (0, 161, 155), 0), (u3, (37, 99, 235), 0.5)):
-                cnt = [0] * bins
-                for v in series:
-                    cnt[min(bins - 1, int(v / 2.5))] += 1
-                for i, n in enumerate(cnt):
-                    bw = cw / bins
-                    bh = ch * (n / max(1, len(series))) * 1.8
-                    bx = ox + i * bw + off * bw * 0.45
-                    dr.rectangle([S(bx + 1), S(oy + ch - bh), S(bx + bw * 0.45), S(oy + ch)], fill=c)
-            for g in range(0, 41, 10):
-                gx = ox + cw * g / 40
-                dr.text((S(gx), S(oy + ch + 10)), str(g), font=font(9), fill=(95, 107, 122), anchor="mm")
-            for i, (lab, c) in enumerate((("FOB 2", (0, 161, 155)), ("FOB 3", (37, 99, 235)))):
-                lx = ox + 60 + i * 90
-                dr.rectangle([S(lx), S(oy + ch + 25), S(lx + 12), S(oy + ch + 35)], fill=c)
-                dr.text((S(lx + 18), S(oy + ch + 30)), lab, font=font(10), fill=(95, 107, 122), anchor="lm")
+            series = ((u2, (0, 161, 155), "FOB 2"), (u3, (37, 99, 235), "FOB 3"))
+            if tag == "TimePlot":
+                for g in range(0, 51, 10):
+                    gy = oy + ch - ch * g / 50
+                    dr.line([S(ox), S(gy), S(ox + cw), S(gy)], fill=(228, 231, 235), width=1)
+                    dr.text((S(ox - 6), S(gy)), str(g), font=font(9), fill=(95, 107, 122), anchor="rm")
+                for ser, c, _ in series:
+                    pp = [(S(ox + cw * (i + 1) / 60), S(oy + ch - ch * v / 50)) for i, v in enumerate(ser)]
+                    if len(pp) > 1:
+                        dr.line(pp, fill=c, width=2 * SS)
+            else:
+                bins = 15
+                for k, (ser, c, _) in enumerate(series):
+                    cnt = [0] * bins
+                    for v in ser:
+                        cnt[min(bins - 1, int(v / 2))] += 1
+                    for i, n in enumerate(cnt):
+                        bw = cw / bins
+                        bh = ch * n / max(1, len(ser)) * 1.6
+                        bx = ox + i * bw + k * bw * 0.45
+                        dr.rectangle([S(bx + 1), S(oy + ch - bh), S(bx + bw * 0.45), S(oy + ch)], fill=c)
+                for g in range(0, 31, 10):
+                    dr.text((S(ox + cw * g / 30), S(oy + ch + 10)), str(g), font=font(9), fill=(95, 107, 122), anchor="mm")
+            for i, (_, c, lab) in enumerate(series):
+                lx = ox + cw / 2 - 90 + i * 100
+                dr.rectangle([S(lx), S(oy + ch + 25), S(lx + 14), S(oy + ch + 33)], fill=c)
+                dr.text((S(lx + 20), S(oy + ch + 29)), lab, font=font(10), fill=(95, 107, 122), anchor="lm")
         elif tag == "EmbeddedObjectPresentation":
-            colors = {0: (217, 119, 6), 1: (0, 161, 155), 2: (37, 99, 235)}
             for (mx, my, r) in pts:
-                px, py = 40 + mx * 8, 150 + my * 8
-                dr.ellipse([S(px - 3.2), S(py - 3.2), S(px + 3.2), S(py + 3.2)], fill=colors[r], outline=(255, 255, 255))
+                px, py = OX + mx * PXM, OY + my * PXM
+                dr.ellipse([S(px - 3.2), S(py - 3.2), S(px + 3.2), S(py + 3.2)], fill=(217, 48, 37) if r else (37, 99, 235), outline=(255, 255, 255))
     img = img.resize((W, H), Image.LANCZOS)
     out = os.path.join(ROOT, "charts", "anylogic_screen_preview.png")
     img.save(out)

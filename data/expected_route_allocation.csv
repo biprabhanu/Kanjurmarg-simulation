@@ -1,0 +1,19 @@
+scenario,additional_demand,route,counted_on,expected_flow_pax_per_min,additional_vs_baseline,expected_util_pct
+Baseline,0.0000,Direct PF1/PF1A,not an FOB user,97.6540,0.0000,
+Baseline,0.0000,FOB 2,FOB 2,68.9065,0.0000,
+Baseline,0.0000,FOB 3,FOB 3,31.8795,0.0000,
+Baseline,0.0000,Skywalk then FOB 3,FOB 3,0.7500,0.0000,
+Baseline,0.0000,FOB 2 total crossing flow,FOB 2,68.9065,0.0000,21.4262
+Baseline,0.0000,FOB 3 total crossing flow,FOB 3,32.6295,0.0000,9.0637
++50 pax/min,50.0000,Direct PF1/PF1A,not an FOB user,121.6540,24.0000,
++50 pax/min,50.0000,FOB 2,FOB 2,86.9065,18.0000,
++50 pax/min,50.0000,FOB 3,FOB 3,39.8795,8.0000,
++50 pax/min,50.0000,Skywalk then FOB 3,FOB 3,0.7500,0.0000,
++50 pax/min,50.0000,FOB 2 total crossing flow,FOB 2,86.9065,18.0000,27.0232
++50 pax/min,50.0000,FOB 3 total crossing flow,FOB 3,40.6295,8.0000,11.2860
++100 pax/min,100.0000,Direct PF1/PF1A,not an FOB user,145.6540,48.0000,
++100 pax/min,100.0000,FOB 2,FOB 2,104.9065,36.0000,
++100 pax/min,100.0000,FOB 3,FOB 3,47.8795,16.0000,
++100 pax/min,100.0000,Skywalk then FOB 3,FOB 3,0.7500,0.0000,
++100 pax/min,100.0000,FOB 2 total crossing flow,FOB 2,104.9065,36.0000,32.6202
++100 pax/min,100.0000,FOB 3 total crossing flow,FOB 3,48.6295,16.0000,13.5082

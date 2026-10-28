@@ -34,6 +34,7 @@ class ShapeRectangle {
     void setWidth(double w) { } void setHeight(double h) { } void setY(double y) { } void setFillColor(Color c) { }
 }
 class HistogramData { void add(double v) { } }
+class ShapeText { void setY(double y) { } }
 class AgentList<T> extends ArrayList<T> { }
 abstract class AgentStub {
     static final SpeedUnits MPS = new SpeedUnits();
@@ -64,10 +65,13 @@ SCHED = """
             if (nextTick <= tq) { m.now = nextTick; m.event_minuteTick(); nextTick += 60; continue; }
             double[] e = m.q.poll(); m.now = e[0]; m.acts.remove((long) e[1]).run();
         }
-        System.out.println("ANIM generated=" + m.generated + " pf1=" + m.routeCount[0] + " fob2=" + m.routeCount[1] + " fob3=" + m.routeCount[2]
-            + " fob2Crossings=" + m.fob2Total + " fob3Crossings=" + m.fob3Total + " fob1=" + m.fob1Total
-            + " completed=" + m.completed + " stillWalking=" + m.passengers.size() + " peakU2=" + m.peakU2);
+        int t2 = 0, t3 = 0;
+        for (int v : m.fob2PerMin) t2 += v;
+        for (int v : m.fob3PerMin) t3 += v;
+        System.out.println("ANIM fob2Crossings=" + t2 + " fob3Crossings=" + t3 + " stillWalking=" + m.passengers.size()
+            + " meanU2=" + m.sumU2 / m.minutesDone + " peakU2=" + m.peakU2 + " meanU3=" + m.sumU3 / m.minutesDone);
         System.out.println("ANIM fob2PerMin=" + Arrays.toString(m.fob2PerMin));
+        System.out.println("ANIM fob3PerMin=" + Arrays.toString(m.fob3PerMin));
         m.runBatch();
         System.out.println(m.batchSummary);
     }
@@ -97,8 +101,11 @@ def main():
     m.append(main.findtext("AdditionalClassCode"))
     m.append(members(main))
     # shapes referenced from code
-    for r in main.iter("Rectangle"):
+    for r in list(main.iter("Rectangle")) + list(main.iter("RoundedRectangle")):
         m.append(f"    ShapeRectangle {r.findtext('Name')} = new ShapeRectangle();")
+    for t in main.iter("Text"):
+        if (t.findtext("Name") or "").startswith("cmpVal_"):
+            m.append(f"    ShapeText {t.findtext('Name')} = new ShapeText();")
     for h in main.iter("HistogramData"):
         m.append(f"    HistogramData {h.findtext('Name')} = new HistogramData();")
     m.append("    AgentList<Passenger> passengers = new AgentList<>();")
